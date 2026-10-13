@@ -143,6 +143,31 @@ npm run dev
 
 Visit the application at: [http://localhost:3000](http://localhost:3000)
 
+### 3. Deploy Backend to Render
+
+You can deploy the backend to [Render](https://render.com) in 2 minutes:
+
+#### Option A: Blueprint (Recommended)
+1. In the [Render Dashboard](https://dashboard.render.com/), click **New +** &rarr; **Blueprint**.
+2. Select your repository `Sia-commits/scamshield`.
+3. Render automatically detects [`render.yaml`](render.yaml) and configures the service with health checks and Python 3.11.
+4. Click **Apply**.
+
+#### Option B: Manual Web Service
+1. In the [Render Dashboard](https://dashboard.render.com/), click **New +** &rarr; **Web Service**.
+2. Connect your repository `Sia-commits/scamshield`.
+3. Fill in the service settings:
+   * **Name:** `scamshield-backend`
+   * **Root Directory:** `backend`
+   * **Runtime:** `Python 3`
+   * **Build Command:** `pip install -r requirements.txt`
+   * **Start Command:** `uvicorn main:app --host 0.0.0.0 --port $PORT`
+4. In **Environment Variables**, add:
+   * `ALLOWED_ORIGINS`: `*`
+   * `OPENROUTER_API_KEY`: *(Optional: your OpenRouter key for live AI)*
+5. Click **Deploy Web Service**.
+
+
 ---
 
 ## 🧪 Safe Demo Samples (No API Key Required)

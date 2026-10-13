@@ -18,12 +18,20 @@ import rules  # noqa: E402
 import store  # noqa: E402
 
 app = FastAPI(title="Scam Shield API", version="0.1.0")
+
+allowed_origins_env = os.getenv("ALLOWED_ORIGINS", "*")
+if allowed_origins_env.strip() == "*":
+    origins = ["*"]
+else:
+    origins = [o.strip() for o in allowed_origins_env.split(",") if o.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[o.strip() for o in os.getenv("ALLOWED_ORIGINS", "http://localhost:3000").split(",")],
+    allow_origins=origins,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 MAX_IMAGE_BYTES = 5 * 1024 * 1024
 MAX_IMAGES = 4
@@ -507,4 +515,11 @@ def add_history(body: HistoryIn):
 @app.get("/history/{user_id}")
 def list_history(user_id: str, limit: int = 30):
     return {"history": store.get_history(user_id, limit)}
+
+
+if __name__ == "__main__":
+    import uvicorn
+    port = int(os.getenv("PORT", 8001))
+    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=False)
+
 
