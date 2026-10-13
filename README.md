@@ -2,7 +2,7 @@
 
 **Check it before you trust it.** Scam Shield scans suspicious messages, Instagram shops and Telegram bots, then gives a risk score with plain-language reasons.
 
-> Built for [algostorm 2.0] by [Debug Divas]
+> Built for [Algostorm 2.0] by [Debug Divas]
 
 ---
 
@@ -226,8 +226,9 @@ Scam Shield provides risk indicators based on visible signals. It is not proof o
 
 | Name | Role |
 |---|---|
-| [Name] | [Role] |
-| [Name] | [Role] |
+| [Honey] | 
+| [Siya] |
+| [Astha] | [Role] |
 
 ## License
 
