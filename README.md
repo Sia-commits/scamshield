@@ -33,5 +33,4 @@ npm run dev                 # http://localhost:3000
 - Message tab (paste text): `URGENT: Your SBI account will be blocked in 24 hours. Update KYC at http://sbi-kyc-update.xyz and share your OTP`
 - Instagram tab, manual numbers: followers 30K, likes 25, comments 1, UPI `demo.fakeshop@upi`
 
-## Not built yet (say so in the pitch)
-Gmail auto-scan, Android SMS listener, live Telegram profile lookup (Telethon), reverse image search for stolen product photos.
+
