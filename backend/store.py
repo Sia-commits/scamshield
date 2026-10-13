@@ -35,6 +35,26 @@ def init_db():
             category TEXT,
             created_at TEXT NOT NULL)""")
         c.execute("CREATE INDEX IF NOT EXISTS idx_ent ON reports(entity_type, entity_value)")
+
+        c.execute("""CREATE TABLE IF NOT EXISTS users(
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id TEXT UNIQUE NOT NULL,
+            email TEXT,
+            name TEXT,
+            created_at TEXT NOT NULL)""")
+
+        c.execute("""CREATE TABLE IF NOT EXISTS scan_history(
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id TEXT NOT NULL,
+            scan_type TEXT NOT NULL,
+            title TEXT NOT NULL,
+            risk_score INTEGER NOT NULL,
+            verdict TEXT NOT NULL,
+            signals_count INTEGER NOT NULL,
+            summary TEXT,
+            created_at TEXT NOT NULL)""")
+        c.execute("CREATE INDEX IF NOT EXISTS idx_hist_user ON scan_history(user_id)")
+
         n = c.execute("SELECT COUNT(*) FROM reports").fetchone()[0]
         if n == 0:
             seed_demo(c)
@@ -76,3 +96,24 @@ def add_report(entity_type: str, value: str, category: str = "") -> int:
         c.execute("INSERT INTO reports(entity_type, entity_value, category, created_at) VALUES (?,?,?,?)",
                   (entity_type, v, (category or "")[:120], datetime.utcnow().isoformat()))
     return count_reports(entity_type, v)
+
+
+def save_history(user_id: str, scan_type: str, title: str, risk_score: int, verdict: str, signals_count: int, summary: str = "") -> int:
+    with _conn() as c:
+        cur = c.execute(
+            """INSERT INTO scan_history(user_id, scan_type, title, risk_score, verdict, signals_count, summary, created_at)
+               VALUES (?,?,?,?,?,?,?,?)""",
+            (user_id, scan_type, title[:100], risk_score, verdict, signals_count, summary[:300], datetime.utcnow().isoformat())
+        )
+        return cur.lastrowid
+
+
+def get_history(user_id: str, limit: int = 30):
+    with _conn() as c:
+        rows = c.execute(
+            """SELECT id, user_id, scan_type, title, risk_score, verdict, signals_count, summary, created_at
+               FROM scan_history WHERE user_id=? ORDER BY id DESC LIMIT ?""",
+            (user_id, limit)
+        ).fetchall()
+        return [dict(r) for r in rows]
+

@@ -316,6 +316,27 @@ def instagram_signals(p: dict):
         out.append(sig("No profile photo", "low",
                        "Account does not have a profile photo set."))
 
+    # Structured SellerCheck fields
+    comments_status = str(p.get("comments_status") or "").lower()
+    if any(k in comments_status for k in ("off", "disable", "limited", "closed")):
+        out.append(sig("Comments disabled or restricted", "high",
+                       "Seller has turned off or limited comments, a common tactic used to prevent scammed buyers from posting warnings."))
+    elif any(k in comments_status for k in ("bot", "emoji")):
+        out.append(sig("Comments appear bot-driven or generic", "medium",
+                       "Comments consist primarily of automated emojis and generic praise rather than genuine customer reviews."))
+
+    age_bucket = str(p.get("account_age_bucket") or "").lower()
+    if age_bucket in ("<3m", "< 3 months", "new", "under_3_months") or (age_days is not None and age_days <= 90):
+        if not any(s["name"] == "Recently created account" for s in out):
+            out.append(sig("Storefront is under 3 months old", "medium",
+                           "Account is very new (< 3 months). Most fly-by-night fraudulent sellers operate for only a few weeks before disappearing."))
+
+    pay_type = str(p.get("payment_terms_type") or "").lower()
+    if any(k in pay_type for k in ("advance", "upi_only", "no_cod", "prepaid")):
+        if not any("Advance" in s["name"] for s in out):
+            out.append(sig("Advance / UPI-only payment", "high",
+                           "Insists on payment before delivery with no cash-on-delivery, which is the main way fake shops take money."))
+
     ratio = to_number(p.get("generic_comment_ratio"))
     if ratio is not None and ratio >= 0.6:
         out.append(sig("Comments look generic or automated", "medium",

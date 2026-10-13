@@ -1,22 +1,41 @@
-# 🛡️ Scam Shield
+# 🛡️ Scam Shield (स्कैमशील्ड)
 
-**Check it before you trust it.** Scam Shield scans suspicious messages, Instagram shops and Telegram bots, then gives a risk score with plain-language reasons.
+**Check it before you trust it.** Scam Shield is a real-time fraud intelligence assistant for Indian cyberspace. It scans suspicious messages, Instagram storefronts, and Telegram bots, delivering explainable risk verdicts, bilingual guidance, and emergency dispute tools.
 
-> Built for [Algostorm 2.0] by [Debug Divas]
+> Built for **Algostorm 2.0** by **Debug Divas**
 
 ---
 
-## The problem
+## 🌟 Flagship Capabilities
 
-Online scams in India no longer look like bad-grammar emails from strangers. They arrive as:
+ScamShield blends deterministic rule-based heuristic engines, community blacklist databases, and vision-capable Large Language Models to deliver explainable, localized fraud protection:
 
-- **Phishing emails and SMS** that imitate banks, wallets and delivery companies
-- **Fake Instagram shops** with thousands of followers and bought engagement, which take advance payment on UPI and never deliver
-- **Telegram bots and "task" groups** that promise airdrops, easy income or guaranteed returns, then drain wallets or collect deposits
+1. **Bilingual Hindi & English (EN / हिंदी):**
+   - Instant language toggle persisting across sessions.
+   - Dual-language AI explanations (`summary_hi` & `action_steps_hi`) with natural Devanagari phrasing for Indian citizens.
 
-Existing tools cover calls and links. Almost nothing helps an ordinary person judge whether a small online shop or a Telegram bot is real before they pay.
+2. **Digital Trust Report & Incident Assist:**
+   - 0–100 risk scoring with segmented meter and provenance tags (`Rule Check`, `AI reading`, `Community Report`, `URL Analysis`).
+   - Honest *Unverified Aspects* transparency disclosures.
+   - 1-click **Copy Summary**, **Print / Save PDF Report**, and **Save to My History**.
+   - **Incident Assist ("Already Paid? Don't panic"):** Emergency protocol covering the critical 120-minute *Golden Hour*, one-click dial/copy for helpline **`1930`** (National Cybercrime Reporting Portal), and a pre-formatted Bank Dispute Email/Letter generator.
 
-## What Scam Shield does
+3. **SellerCheck Flagging Workflow (Social Commerce Trust):**
+   - Inspects Instagram shops for comments status (disabled / bot spam), account age bucket, and payment terms (100% advance UPI vs. COD).
+   - Embedded "Before You Pay" 4-step consumer safety checklist.
+
+4. **Learn Hub (Top 5 Indian Scam Playbooks):**
+   - Dissects real-world fraud schemes: *Electricity Bill Disconnection SMS*, *Digital Arrest (CBI/Police Video Call)*, *SBI YONO KYC Phishing*, *YouTube Task Scam*, and *Customs Courier Clearance Fee*.
+   - Includes full anatomy, red flags, and a **"Test this sample in Scanner"** button for interactive learning.
+
+5. **Guest-First Auth & Scan History:**
+   - Zero-barrier scanning: no mandatory password or account sign-up.
+   - Generates persistent guest profiles with optional nickname.
+   - Full "My History" side drawer to reopen, review, and manage past evaluations, backed by local storage and SQLite.
+
+---
+
+## 🔍 What Scam Shield Checks
 
 | Check | Input | What it looks for |
 |---|---|---|
@@ -27,211 +46,138 @@ Existing tools cover calls and links. Almost nothing helps an ordinary person ju
 
 Every result includes a **0-100 risk score**, a **verdict** (Low risk / Suspicious / High risk), the **specific signals** behind it, and **what to do next**.
 
-Results are worded as *risk indicators*, never as an accusation. Scam Shield cannot prove that someone is a scammer.
-
 ---
 
-## How it works
+## 🏗️ Architecture & Pipeline
 
 ```
  Screenshot / text / username
             │
             ▼
  ┌──────────────────────┐
- │  Next.js frontend    │
+ │  Next.js frontend    │   (Bilingual UI, Incident Assist, History Drawer)
  └──────────┬───────────┘
             │ HTTPS (multipart / JSON)
             ▼
  ┌──────────────────────────────── FastAPI backend ───────────────────────────────┐
  │                                                                                │
- │  1. Vision LLM (OpenRouter)  → reads screenshots into structured JSON          │
- │  2. Rules engine             → deterministic red-flag checks + URL analysis    │
- │  3. Community reports (SQLite) → UPI / phone / handle lookups                  │
- │  4. Score fusion             → one explainable 0-100 score                     │
- │  5. LLM explainer            → plain-language summary from the signals only    │
+ │  1. Vision LLM (OpenRouter / Ollama) → extracts structured JSON from media     │
+ │  2. Rules engine                     → deterministic red-flag checks + URLs    │
+ │  3. Community reports (SQLite)       → UPI / phone / handle blacklist lookups  │
+ │  4. Score fusion                     → fused explainable 0-100 score           │
+ │  5. LLM explainer                    → bilingual English & Devanagari Hindi    │
  │                                                                                │
  └────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-**Hybrid by design.** The rules engine makes the score explainable and repeatable. The LLM handles what rules cannot, such as reading screenshots, spotting context and writing the explanation. If the LLM is unavailable, the app falls back to rules-only results.
-
-### Scoring
-
-- Each signal adds points by severity: **low 8, medium 18, high 35** (capped at 100)
-- Verdict thresholds: **below 25** Low risk, **25-54** Suspicious, **55 and above** High risk
-- For messages, the rule score and the LLM's scam-likelihood are blended (60% weight on the higher value, 40% on the lower)
-- If any UPI ID, phone or handle has **5 or more** community reports, the score is raised to at least 70
-
-### Safety choices
-
-- Text inside screenshots is treated as **untrusted data** in every prompt, so a scam message cannot instruct the model to rate it as safe
-- The explainer may use **only the detected signals**, which limits made-up claims
-- Messages are analysed and **not stored**. Only community reports that users choose to submit are saved
-- Upload limits: PNG, JPG or WebP, up to 4 images, 5 MB each
-
----
-
-## Tech stack
-
-| Layer | Technology |
-|---|---|
-| Frontend | Next.js 14, React 18, plain CSS |
-| Backend | FastAPI, Pydantic, Uvicorn |
-| AI | Vision-capable LLM through OpenRouter (model set in `.env`) |
-| Detection | Python rules engine (regex, URL and domain analysis, fuzzy matching) |
-| Data | SQLite (community reports) |
-
-## Project structure
+### Project Structure
 
 ```
 scamshield/
-├── backend/
-│   ├── main.py            # FastAPI app and endpoints
-│   ├── llm.py             # OpenRouter client, prompts, JSON parsing
-│   ├── rules.py           # Rule engine, URL analysis, scoring, entity extraction
-│   ├── store.py           # SQLite community report database
-│   ├── requirements.txt
-│   └── .env.example
-└── frontend/
-    ├── pages/             # index.js (tabs for each check), _app.js
-    ├── components/        # ResultCard.js (shared result view)
-    ├── lib/api.js         # API client
-    ├── styles/globals.css
-    └── package.json
+├── frontend/                     # Next.js 14 (Pages Router)
+│   ├── components/
+│   │   ├── ResultCard.js         # Digital Trust Report with provenance & print actions
+│   │   ├── IncidentAssistModal.js# Golden Hour checklist & dispute letter generator
+│   │   ├── AuthModal.js          # Guest session profile management
+│   │   └── HistoryDrawer.js      # Scan history drawer with reopen & delete actions
+│   ├── context/
+│   │   └── LanguageContext.js    # Persistent EN/HI language context
+│   ├── lib/
+│   │   ├── api.js                # Frontend API client with proxy & direct fallback
+│   │   └── translations.js       # English & Hindi translation dictionaries & playbooks
+│   ├── pages/
+│   │   ├── _app.js               # App shell with LanguageProvider
+│   │   ├── _document.js          # Font optimization
+│   │   └── index.js              # 5-tab main application
+│   └── styles/
+│       └── globals.css           # Design tokens, modal/drawer styling, print layout
+│
+└── backend/                      # FastAPI Microservice
+    ├── main.py                   # REST API endpoints & analysis pipeline
+    ├── rules.py                  # Deterministic heuristics, regexes, lookalike checks
+    ├── llm.py                    # Vision extraction & bilingual explainer prompts
+    └── store.py                  # SQLite database for community reports & scan history
 ```
 
 ---
 
-## Getting started
+## 🚀 Getting Started
 
-**Requirements:** Python 3.10+, Node.js 18+, and an [OpenRouter](https://openrouter.ai) API key.
-
-### 1. Backend
+### 1. Backend Setup
 
 ```bash
 cd backend
+
+# Create and activate virtual environment
 python -m venv venv
-source venv/bin/activate          # Windows: venv\Scripts\activate
+# Windows:
+venv\Scripts\activate
+# Linux/macOS:
+source venv/bin/activate
+
+# Install dependencies
 pip install -r requirements.txt
-cp .env.example .env              # then edit .env
-uvicorn main:app --reload --port 8000
+
+# Configure environment
+cp .env.example .env
+# Optional: Add OPENROUTER_API_KEY in .env. If left blank, local Ollama or rule fallbacks run seamlessly.
+
+# Start FastAPI server
+uvicorn main:app --reload --port 8001
 ```
 
-In `.env`:
+* Backend health check: [http://127.0.0.1:8001/health](http://127.0.0.1:8001/health)  
+* Interactive API Docs (Swagger): [http://127.0.0.1:8001/docs](http://127.0.0.1:8001/docs)
 
-```
-OPENROUTER_API_KEY=your_key_here
-OPENROUTER_MODEL=google/gemini-2.0-flash-001   # any vision-capable model; check openrouter.ai/models
-ALLOWED_ORIGINS=http://localhost:3000
-```
-
-Check it is running: http://localhost:8000/health (interactive docs at http://localhost:8000/docs).
-
-### 2. Frontend
+### 2. Frontend Setup
 
 ```bash
 cd frontend
-cp .env.local.example .env.local  # NEXT_PUBLIC_API_URL=http://localhost:8000
+
+# Install dependencies
 npm install
+
+# Start Next.js development server
 npm run dev
 ```
 
-Open http://localhost:3000.
+Visit the application at: [http://localhost:3000](http://localhost:3000)
 
 ---
 
-## Try it
+## 🧪 Safe Demo Samples (No API Key Required)
 
-These work without an API key (rules-only mode):
+You can demonstrate all features using deterministic mock signals:
 
-**Email / SMS tab → paste text**
-```
-URGENT: Your SBI account will be blocked in 24 hours. Update KYC at http://sbi-kyc-update.xyz and share your OTP
-```
-
-**Telegram tab**
-```
-@demo_airdrop_bot Claim your airdrop! Connect wallet now https://bit.ly/x
-```
-
-**Instagram tab → "Enter numbers yourself"**
-Followers `30K`, average likes `25`, average comments `1`, UPI ID `demo.fakeshop@upi`
-
-Screenshot uploads need the API key.
-
-> The community database ships with **fictional `demo_*` entries** so the report feature can be shown. They are not real accounts.
+* **Email / SMS Tab:**
+  > `URGENT: Your SBI account will be blocked in 24 hours. Update KYC at http://sbi-kyc-update.xyz and share your OTP with officer.`
+* **Instagram / SellerCheck Tab:**
+  > Username: `demo_fake_shop`, Followers: `45,000`, Likes: `15`, Comments Status: `Disabled`, Payment: `100% Advance / UPI-only`.
+* **Telegram Tab:**
+  > `@demo_airdrop_bot Claim free 500 USDT! Connect wallet now at http://bit.ly/claim-airdrop`
+* **Community Report Lookup:**
+  > UPI ID: `demo.fakeshop@upi` or Phone: `9999900001` (triggers community blacklist signals).
 
 ---
 
-## API reference
+## 🔒 Security & Ethics
 
-| Method | Endpoint | Body |
-|---|---|---|
-| `GET` | `/health` | none |
-| `POST` | `/analyze/screenshot` | multipart: `files` (images), `text` |
-| `POST` | `/analyze/instagram` | multipart: `files`, `username`, `upi`, `phone`, `manual_followers`, `manual_avg_likes`, `manual_avg_comments` |
-| `POST` | `/analyze/telegram` | JSON: `{ "text": "..." }` |
-| `POST` | `/report` | JSON: `{ "entity_type": "upi\|phone\|ig_handle\|tg_handle\|url", "value": "...", "category": "" }` |
-
-All analysis endpoints return the same shape:
-
-```json
-{
-  "risk_score": 88,
-  "verdict": "HIGH_RISK",
-  "signals": [
-    { "name": "Upfront fee demanded", "severity": "high", "detail": "...", "source": "rule" }
-  ],
-  "explanation": "Plain-language summary...",
-  "recommended_action": "What to do next...",
-  "extracted": {},
-  "used_ai": true,
-  "disclaimer": "These are risk indicators..."
-}
-```
-
-`source` is `rule`, `ai` or `community`, so the interface can show where each signal came from.
+* All analyzed user data is processed ephemeral without being indexed for public browsing.
+* Results are risk assessments based on observable indicators and heuristic matches, not accusations or definitive legal judgments.
+* Always independently verify via primary banking helplines before undertaking financial decisions.
 
 ---
 
-## Limitations
-
-Being upfront about what this version does and does not do:
-
-- **Auto-scan is not built.** Gmail and Android SMS scanning appear in the app as a roadmap placeholder only
-- **Telegram checks use text only.** It analyses the username and message you paste. It does not look the bot up on Telegram
-- **Instagram data comes from your screenshots or numbers.** Instagram has no public profile API, so nothing is scraped
-- **Heuristics, not certainty.** Thresholds such as engagement rate are rules of thumb, and genuine small shops can trip some signals
-- **Community data is only as good as its reports.** The seeded entries are demo data, and a production version would need moderation to prevent false or malicious reports
-- **Results are cached in memory** and reset when the server restarts
-
-## Roadmap
-
-- [ ] Gmail auto-scan with read-only OAuth
-- [ ] Android SMS listener (Truecaller-style alerts)
-- [ ] Live Telegram bot lookup (creation date, commands, description) via Telethon
-- [ ] Reverse image search to catch stolen product photos on fake shops
-- [ ] Hindi and Hinglish message support
-- [ ] Moderation and abuse protection for community reports
-- [ ] Browser extension and share-sheet integration
-- [ ] Rate limiting and user accounts
-
----
-
-## Disclaimer
-
-Scam Shield provides risk indicators based on visible signals. It is not proof of wrongdoing and not legal or financial advice. Always verify through an official channel you look up yourself before sending money or sharing personal details.
-
-## Team
+## 👥 Team
 
 | Name | Role |
 |---|---|
-| [Honey] | 
-| [Siya] |
-| [Astha] | [Role] |
+| Honey | Core Developer |
+| Siya | Core Developer |
+| Astha | Core Developer |
 
-## License
+---
 
-[Choose a license, e.g. MIT]
+## 📄 License
 
-
+This project is licensed under the MIT License.

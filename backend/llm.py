@@ -152,7 +152,13 @@ EXPLAIN_PROMPT = f"""You write short, plain-language scam-check explanations for
 {SAFETY_LINE}
 You are given a risk verdict and the list of detected signals. Use ONLY those signals. Do not invent facts.
 Never state or imply that a person is definitely a scammer. Say 'risk indicators' or 'signs'.
-Return JSON: {{"explanation": "2-3 sentences covering the most important reasons", "recommended_action": "1-2 sentences of concrete next steps"}}"""
+Return JSON with exactly these keys:
+{{
+  "explanation": "2-3 sentences in English covering the most important reasons",
+  "recommended_action": "1-2 sentences in English of concrete next steps",
+  "summary_hi": "2-3 sentences in Hindi (Devanagari script) explaining the reasons simply and clearly for Indian citizens",
+  "action_steps_hi": "1-2 sentences in Hindi (Devanagari script) with concrete safety action steps"
+}}"""
 
 
 async def extract_message(images, pasted_text: str):
@@ -174,5 +180,11 @@ async def explain(kind: str, score: int, verdict: str, signals):
                "signals": [{"name": s["name"], "severity": s["severity"], "detail": s["detail"]} for s in signals[:10]]}
     out = parse_json(await chat(
         [{"role": "system", "content": EXPLAIN_PROMPT},
-         {"role": "user", "content": json.dumps(payload)}], max_tokens=400))
-    return str(out.get("explanation", "")).strip(), str(out.get("recommended_action", "")).strip()
+         {"role": "user", "content": json.dumps(payload)}], max_tokens=600))
+    return (
+        str(out.get("explanation", "")).strip(),
+        str(out.get("recommended_action", "")).strip(),
+        str(out.get("summary_hi", "")).strip(),
+        str(out.get("action_steps_hi", "")).strip(),
+    )
+
